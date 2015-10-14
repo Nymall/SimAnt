@@ -13,7 +13,7 @@ commercial product.(but why would you?)
 
 If you are going to use this script or modifications of it, you must agree:
 	A.)Contain a link to this Bitbucket Rep in your files:
-		-https://bitbucket.org/Nymall/simant/
+		-https://github.com/Nymall/SimAnt/
 	B.)Maintain Credit of the original Script to Nicholas Fagerlid.
 	C.)Include This readme file with the source of the project.
 	
