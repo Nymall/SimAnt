@@ -13,7 +13,7 @@ class WORLD{
 	public $numofactive;
 	public $turnoutput;
 	public $absturn;//Absolute turn: Eg, the game is on turn 50
-	const VERSION = '113';//WARNING: Only edit if the file structure has changed. This will delete all saves.
+	const VERSION = '114';//WARNING: Only edit if the file structure has changed. This will delete all saves.
 	
 	function __construct(){
 		$this->foodcounter = 0;
@@ -76,7 +76,7 @@ class WORLD{
 			$antline = "";
 			foreach($nest->ant as $keyb => $ant){
 				if($this->nest[$keya]->ant[$keyb]->isdead == 0){
-					$antline .= "," . $this->nest[$keya]->ant[$keyb]->posx . "," . $this->nest[$keya]->ant[$keyb]->posy . "," . $this->nest[$keya]->ant[$keyb]->brain->update() . "," . $this->nest[$keya]->ant[$keyb]->quality . "," . $this->nest[$keya]->ant[$keyb]->stamina . "," . $this->nest[$keya]->ant[$keyb]->health . "," . $this->nest[$keya]->ant[$keyb]->lastpos;
+					$antline .= "," . $this->nest[$keya]->ant[$keyb]->posx . "," . $this->nest[$keya]->ant[$keyb]->posy . "," . $this->nest[$keya]->ant[$keyb]->brain->update() . "," . $this->nest[$keya]->ant[$keyb]->quality . "," . $this->nest[$keya]->ant[$keyb]->stamina . "," . $this->nest[$keya]->ant[$keyb]->health . "," . $this->nest[$keya]->ant[$keyb]->lastpos . "," . $this->nest[$keya]->ant[$keyb]->enemyposx . "," . $this->nest[$keya]->ant[$keyb]->enemyposy;
 					$numofants++;
 				}
 			}
@@ -122,7 +122,7 @@ class WORLD{
 				$this->nest[$nesttype] = new NEST($nesttype, array_pop($reversed), array_pop($reversed), $this->worldname,  array_pop($reversed), array_pop($reversed), false);
 				$numofants = array_pop($reversed);
 				for( $j = 1; $j <= $numofants; $j++){
-					$this->nest[$nesttype]->loadant(array_pop($reversed), array_pop($reversed), array_pop($reversed), array_pop($reversed), array_pop($reversed), array_pop($reversed), array_pop($reversed));
+					$this->nest[$nesttype]->loadant(array_pop($reversed), array_pop($reversed), array_pop($reversed), array_pop($reversed), array_pop($reversed), array_pop($reversed), array_pop($reversed), array_pop($reversed), array_pop($reversed));
 				}
 		}
 		$numoffood = array_pop($reversed);
@@ -317,8 +317,8 @@ class NEST{
 		$this->world->turnoutput .= $text . "<br>";
 	}
 	
-	function loadant($posx, $posy, $brain, $quality, $stamina, $health, $lastpos){
-		$this->ant[] = new ANT($posx, $posy, $this->type, $this->world, $brain, $quality, $stamina, $health, $lastpos);
+	function loadant($posx, $posy, $brain, $quality, $stamina, $health, $lastpos, $enemyposx, $enemyposy ){
+		$this->ant[] = new ANT($posx, $posy, $this->type, $this->world, $brain, $quality, $stamina, $health, $lastpos, $enemyposx, $enemyposy);
 	}
 	
 	function newant($posx, $posy){
@@ -361,8 +361,10 @@ class ANT{
 	public $health;
 	public $lastpos;
 	public $damageresist;
+    public $enemyposx;
+    public $enemyposy;
 	
-	function __construct($posix, $posiy, $type, &$world, $brain = 'stunned', $quality = 0, $stamina = 50, $health='10', $lastpos = 0){
+	function __construct($posix, $posiy, $type, &$world, $brain = 'stunned', $quality = 0, $stamina = 50, $health='10', $lastpos = 0, $enemyposx = 0, $enemyposy = 0,){
 		$this->world = &$world;
 		$this->posx = $posix;
 		$this->posy = $posiy;
@@ -378,6 +380,8 @@ class ANT{
 		$this->lastpos = $lastpos;
 		$this->health = $health;
 		$this->damageresist = false;
+        $this->enemyposx = $enemyposx;
+        $this->enemyposy = $enemyposy;
 		if($brain == 'stunned'){
 			$this->appendtoturn("<b>A new " . $this->type . " ant has been born!</b>");
 		}
@@ -556,6 +560,8 @@ class ANT{
 		} else {
 			$this->world->nest[$test[0]]->ant[$test[1]]->reaction();
 			$placehold = &$this->world->nest[$test[0]]->ant[$test[1]];
+            $placehold->enemyposx = $this->posx;
+            $placehold->enemyposy = $this->posy;
 			$this->appendtoturn("<b>" . $this->type . "</b>(" . $this->stamina . ") attacked a ant at " . $placehold->posx . "-" . $placehold->posy . "!");
 			if($placehold->damageresist = true){
 				$placehold->health = $placehold->health - rand(1,2);
@@ -583,7 +589,7 @@ class ANT{
 		//if the ant is holding food, the ant flees
 		//else, the ant either stays defending and gets a bonus to health, or attacks
         if($this->quality > 0){
-            $this->brain->setstate('gohome');
+            $this->brain->setstate('runaway');
             $this->update();
         } else {
             if(rand(1,2) == 1){
@@ -612,76 +618,7 @@ class ANT{
 		$this->drainstamina();
 		if($this->isdead == 0){
 		$this->appendtoturn("<b>" . $this->type . "</b>(" . $this->stamina . ") ant moved towards home at " . $this->world->nest[$this->type]->posx . "-" . $this->world->nest[$this->type]->posy);
-		if($this->world->nest[$this->type]->posx < $this->posx && $this->world->nest[$this->type]->posy > $this->posy){
-				if($this->world->checklocation($this->posx + 1, $this->posy - 1)){
-					$this->posy++;
-					$this->posx--;
-				} elseif($this->world->checklocation($this->posx - 1, $this->posy)){
-					$this->posx++;
-				} elseif($this->world->checklocation($this->posx, $this->posy + 1)){
-					$this->posy--;
-				}
-			} elseif($this->world->nest[$this->type]->posx < $this->posx && $this->world->nest[$this->type]->posy < $this->posy){
-				if($this->world->checklocation($this->posx + 1, $this->posy + 1)){
-					$this->posy--;
-					$this->posx--;
-				} elseif($this->world->checklocation($this->posx + 1, $this->posy)){
-					$this->posx--;
-				} elseif($this->world->checklocation($this->posx, $this->posy + 1)){
-					$this->posy--;
-				}
-			} elseif($this->world->nest[$this->type]->posx > $this->posx && $this->world->nest[$this->type]->posy > $this->posy){
-				if($this->world->checklocation($this->posx - 1, $this->posy - 1)){
-					$this->posy++;
-					$this->posx++;
-				} elseif($this->world->checklocation($this->posx - 1, $this->posy)){
-					$this->posx++;
-				} elseif($this->world->checklocation($this->posx, $this->posy - 1)){
-					$this->posy++;
-				}
-			} elseif($this->world->nest[$this->type]->posx > $this->posx && $this->world->nest[$this->type]->posy < $this->posy){
-				if($this->world->checklocation($this->posx - 1, $this->posy + 1)){
-					$this->posy--;
-					$this->posx++;
-				} elseif($this->world->checklocation($this->posx - 1, $this->posy)){
-					$this->posx++;
-				} elseif($this->world->checklocation($this->posx, $this->posy - 1)){
-					$this->posy--;
-				}
-			} elseif($this->world->nest[$this->type]->posx > $this->posx){
-			if($this->world->checklocation($this->posx + 1, $this->posy)){
-				$this->posx++;
-			} elseif(($this->posy + 1) < 21){
-				$this->posy--;
-			} else {
-				$this->posy++;
-			}
-		} elseif($this->world->nest[$this->type]->posx < $this->posx){
-			if($this->world->checklocation($this->posx - 1, $this->posy)){
-				$this->posx--;
-			} elseif(($this->posy - 1) > 0){
-				$this->posy++;
-			} else {
-				$this->posy--;
-			}
-		} elseif($this->world->nest[$this->type]->posy > $this->posy){
-			if($this->world->checklocation($this->posx, $this->posy + 1)){
-				$this->posy++;
-			} elseif(($this->posx + 1) < 21){
-				$this->posx--;
-			} else {
-				$this->posx++;
-			}
-		} elseif($this->world->nest[$this->type]->posy < $this->posy){
-			if($this->world->checklocation($this->posx, $this->posy-1)){
-				$this->posy--;
-			} elseif(($this->posy - 1) > 0){
-				$this->posx++;
-			} else {
-				$this->posx--;
-			}
-		} 
-		
+        $this->moveto($this->world->nest[$this->type]->posx, this->world->nest[$this->type]->posy);
 		if($this->world->nest[$this->type]->posy == $this->posy && $this->world->nest[$this->type]->posx == $this->posx){
 			$this->appendtoturn("<b>" . $this->type . "</b>(" . $this->stamina . ") ant arrived at home at " . $this->world->nest[$this->type]->posx . "-" . $this->world->nest[$this->type]->posy);
 			$this->booststamina();
@@ -696,10 +633,99 @@ class ANT{
 	
 		//runaway - Paths away from tile
 	function runaway(){
-		//this needs to be able to know where it's attacker is comming from.
-		//unable to add untill I can discern a way to communicate it.
+        if($this->enemyposx < $this->posx){
+            $targetx = $this->posx + 1;
+        } elseif($this->enemyposx > $this->posx) {
+            $targetx = $this->posx - 1;
+        }
+        
+        if($this->enemyposy < $this->posy){
+            $targety = $this->posy + 1;
+        } elseif($this->enemyposy > $this->posy) {
+            $targety = $this->posy - 1;
+        }
+        //Target set, now we try to move towards it.
+        $this->moveto($targetx, $targety);
+        //Reset the FSM
+        if($this->quality > 0){
+            $this->brain->setstate("gohome");
+        } else {
+            $this->brain->setstate("findleaf");
+        }
 		$this->drainstamina();
 	}
+    
+    function moveto($posx, $posy){
+        if($posx < $this->posx && $posy > $this->posy){
+				if($this->world->checklocation($this->posx + 1, $this->posy - 1)){
+					$this->posy++;
+					$this->posx--;
+				} elseif($this->world->checklocation($this->posx - 1, $this->posy)){
+					$this->posx++;
+				} elseif($this->world->checklocation($this->posx, $this->posy + 1)){
+					$this->posy--;
+				}
+			} elseif($posx < $this->posx && $posy < $this->posy){
+				if($this->world->checklocation($this->posx + 1, $this->posy + 1)){
+					$this->posy--;
+					$this->posx--;
+				} elseif($this->world->checklocation($this->posx + 1, $this->posy)){
+					$this->posx--;
+				} elseif($this->world->checklocation($this->posx, $this->posy + 1)){
+					$this->posy--;
+				}
+			} elseif($posx > $this->posx && $posy > $this->posy){
+				if($this->world->checklocation($this->posx - 1, $this->posy - 1)){
+					$this->posy++;
+					$this->posx++;
+				} elseif($this->world->checklocation($this->posx - 1, $this->posy)){
+					$this->posx++;
+				} elseif($this->world->checklocation($this->posx, $this->posy - 1)){
+					$this->posy++;
+				}
+			} elseif($posx > $this->posx && $posy < $this->posy){
+				if($this->world->checklocation($this->posx - 1, $this->posy + 1)){
+					$this->posy--;
+					$this->posx++;
+				} elseif($this->world->checklocation($this->posx - 1, $this->posy)){
+					$this->posx++;
+				} elseif($this->world->checklocation($this->posx, $this->posy - 1)){
+					$this->posy--;
+				}
+			} elseif($>posx > $this->posx){
+			if($this->world->checklocation($this->posx + 1, $this->posy)){
+				$this->posx++;
+			} elseif(($this->posy + 1) < 21){
+				$this->posy--;
+			} else {
+				$this->posy++;
+			}
+		} elseif($posx < $this->posx){
+			if($this->world->checklocation($this->posx - 1, $this->posy)){
+				$this->posx--;
+			} elseif(($this->posy - 1) > 0){
+				$this->posy++;
+			} else {
+				$this->posy--;
+			}
+		} elseif($posy > $this->posy){
+			if($this->world->checklocation($this->posx, $this->posy + 1)){
+				$this->posy++;
+			} elseif(($this->posx + 1) < 21){
+				$this->posx--;
+			} else {
+				$this->posx++;
+			}
+		} elseif($posy < $this->posy){
+			if($this->world->checklocation($this->posx, $this->posy-1)){
+				$this->posy--;
+			} elseif(($this->posy - 1) > 0){
+				$this->posx++;
+			} else {
+				$this->posx--;
+			}
+		}
+    }
 	
 	function update(){
 	//Updates the FSM, running the function stored in the brain. Either findleaf, gohome or runaway.
