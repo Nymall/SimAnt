@@ -582,13 +582,18 @@ class ANT{
 		//the ant takes minimal damage, defends and can either flee or attack.
 		//if the ant is holding food, the ant flees
 		//else, the ant either stays defending and gets a bonus to health, or attacks
-		if(rand(1,2) == 1){
-			$this->brain->setstate('attack');
-			$this->update();
-		} else {
-			$this->brain->setstate('defend');
-			$this->health = $this->health + rand(3,7);
-		}
+        if($this->quality > 0){
+            $this->brain->setstate('gohome');
+            $this->update();
+        } else {
+            if(rand(1,2) == 1){
+                $this->brain->setstate('attack');
+                $this->update();
+            } else {
+                $this->brain->setstate('defend');
+                $this->health = $this->health + rand(3,7);
+            }
+        }
 	}
 	
 	function reaction(){
