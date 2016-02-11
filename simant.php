@@ -324,6 +324,10 @@ class NEST{
 	function newant($posx, $posy){
 		$this->ant[] = new ANT($posx, $posy, $this->type, $this->world);
 	}
+    
+    function newwarant($posx, $posy){
+		$this->ant[] = new WARANT($posx, $posy, $this->type, $this->world);
+	}
 	
 	function idle(){
 		if($this->storedfood > 10){
@@ -439,7 +443,7 @@ class ANT{
 			$this->brain->setstate("gohome");
 			$this->appendtoturn("<b>" . $this->type . "</b>(" . $this->stamina . ") ant ate a part of it's food!");
 		} else {
-			$this->stamina = $this->quality * 3;
+			$this->stamina += $this->quality * 3;
 			$this->quality = 0;
 			$this->hasfood = false;
 			$this->brain->setstate("findleaf");
@@ -626,6 +630,11 @@ class ANT{
 			$this->world->nest[$this->type]->storedfood = $this->world->nest[$this->type]->storedfood + $this->quality;
 			//echo "<br>Quality:" . $this->world->nest[$this->type]->storedfood + $this->quality . "<br>";
 			$this->quality = 0;
+            if($this->stamina > 180){
+                $this->world->nest->[$this->type]->newwarant($this->posx, $this->posy);
+                $this->isdead();
+                $this->appendtoturn("<b>" . $this->type . "</b>(" . $this->stamina . ") ant molted and became a war ant at " . $this->world->nest[$this->type]->posx . "-" . $this->world->nest[$this->type]->posy);
+            }
 			$this->brain->setstate("findleaf");
 		}
 		}
@@ -753,6 +762,67 @@ class ANT{
 
 }
 
+class WARANT extends ANT{
+    
+    function defend(){
+		$this->drainstamina();
+		//the ant takes minimal damage, defends and can either flee or attack.
+		//if the ant is holding food, the ant flees
+		//else, the ant either stays defending and gets a bonus to health, or attacks
+        $this->brain->setstate('attack');
+        $this->update();
+    }
+    
+    function reaction(){
+		//forces the ant into either a defensive or stunned state.
+		if(rand(1,10) == 1){
+			$this->brain->setstate("stunned_attack");
+		} else {
+			$this->brain->setstate("defend");
+			$this->damageresist = true;
+			$this->appendtoturn("<b>" . $this->type . "</b>(" . $this->stamina . ") defended at " . $this->posx . "-" . $this->posy . ".");
+		}
+	}
+    
+    function findleaf(){
+        //Since this ant does not gather food, the old decision making tree is useless. Now, We're going to be targeting ants.
+		if(is_array($this->world->findenemy($this->enemyposx, $this->enemyposy, $this->type)){
+            if($this->enemyposx - $this->posx < 0){
+                $targetx = -1;
+            } elseif($this->enemyposx - $this->posx > 0) {
+                $targetx = +1;
+            } else{
+                $targetx = 0;
+            }
+            if($this->enemyposy - $this->posy < 0){
+                $targety = -1;
+            } elseif($this->enemyposy - $this->posy > 0) {
+                $targety = +1;
+            } else{
+                $targety = 0;
+            }
+            if(is_array($this->world->findenemy($this->posx + $targetx, $this->posy + $targety, $this->type)){
+                $this->brain->setstate("attack");
+                $this->update();
+            } else {
+                moveto($this->posx, $this->posy);
+                $this->drainstamina();
+            }
+        } else {
+            for($i = 0; $i += 20; $i++){
+                for($j = 0; $j += 20; $j++){
+                    if(is_array($this->world->findenemy($i + 1, $j + 1, $this->type)){
+                        $this->enemyposx = $i + 1;
+                        $this->enemyposy = $j + 1;
+                    }
+                }
+            }
+        }
+	}
+    
+}
+    
+}
 $world = new WORLD();
 $world->runturn();
 
