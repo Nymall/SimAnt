@@ -367,6 +367,7 @@ class ANT{
 	public $damageresist;
     public $enemyposx;
     public $enemyposy;
+    const DAMMAX = 4;
 	
 	function __construct($posix, $posiy, $type, &$world, $brain = 'stunned', $quality = 0, $stamina = 50, $health='10', $lastpos = 0, $enemyposx = 0, $enemyposy = 0,){
 		$this->world = &$world;
@@ -568,10 +569,10 @@ class ANT{
             $placehold->enemyposy = $this->posy;
 			$this->appendtoturn("<b>" . $this->type . "</b>(" . $this->stamina . ") attacked a ant at " . $placehold->posx . "-" . $placehold->posy . "!");
 			if($placehold->damageresist = true){
-				$placehold->health = $placehold->health - rand(1,2);
+				$placehold->health = $placehold->health - rand(1, (DAMMAX / 2));
 				$this->health = $this->health - 1;
 			} else {
-				$placehold->health = $placehold->health - rand(1,4);
+				$placehold->health = $placehold->health - rand(1, DAMMAX);
 			}
 			$this->appendtoturn("<b>" . $placehold->type . "</b>(" . $placehold->stamina . ") has " . $placehold->health . " health left.");
 		}
@@ -763,6 +764,8 @@ class ANT{
 }
 
 class WARANT extends ANT{
+    
+    const DAMMAX = 6;
     
     function defend(){
 		$this->drainstamina();
