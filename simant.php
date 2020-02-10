@@ -99,7 +99,7 @@ class WORLD{
 	
 	function spawnfood($posx, $posy, $quality=0, $name='Seed'){//add food to the game registry
 		if($quality == 0){ 
-			$quality = rand(1,10);
+			$quality = rand(10,25);
 		}
 		$this->food[$this->foodcounter] = new FOOD($posx, $posy, $this->foodcounter, $quality, $name);
 		$this->foodcounter++;
@@ -162,7 +162,7 @@ class WORLD{
 			if($this->nest[$keya]->ant[0] != null){
 				foreach($nest->ant as $keyb => $ant){//run the actions for each ant.
 					$this->nest[$keya]->ant[$keyb]->update();
-					array_unshift($objectlocation, "<td width='50' height='50' style='background-color:" . $this->nest[$keya]->ant[$keyb]->type . ";'><b style='color:white;'>ant<b/></td>", $this->nest[$keya]->ant[$keyb]->posx, $this->nest[$keya]->ant[$keyb]->posy);
+					array_unshift($objectlocation, "<td width='50' height='50' style='background-color:" . $this->nest[$keya]->ant[$keyb]->type . ";'><b style='color:white;'>". $this->nest[$keya]->ant[$keyb]->name ."<b/></td>", $this->nest[$keya]->ant[$keyb]->posx, $this->nest[$keya]->ant[$keyb]->posy);
 				}
 			}
 			array_unshift($objectlocation, "<td width='50' height='50'><b><i>nest</i></b></td>", $this->nest[$keya]->posx, $this->nest[$keya]->posy);
@@ -368,6 +368,7 @@ class ANT{
     public $enemyposx;
     public $enemyposy;
     const DAMMAX = 4;
+	const NAME = "Ant";
 	
 	function __construct($posix, $posiy, $type, &$world, $brain = 'stunned', $quality = 0, $stamina = 50, $health='10', $lastpos = 0, $enemyposx = 0, $enemyposy = 0,){
 		$this->world = &$world;
@@ -766,6 +767,7 @@ class ANT{
 class WARANT extends ANT{
     
     const DAMMAX = 6;
+	const NAME = "War Ant";
     
     function defend(){
 		$this->drainstamina();
