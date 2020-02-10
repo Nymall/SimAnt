@@ -76,7 +76,7 @@ class WORLD{
 			$antline = "";
 			foreach($nest->ant as $keyb => $ant){
 				if($this->nest[$keya]->ant[$keyb]->isdead == 0){
-					$antline .= "," . $this->nest[$keya]->ant[$keyb]->posx . "," . $this->nest[$keya]->ant[$keyb]->posy . "," . $this->nest[$keya]->ant[$keyb]->brain->update() . "," . $this->nest[$keya]->ant[$keyb]->quality . "," . $this->nest[$keya]->ant[$keyb]->stamina . "," . $this->nest[$keya]->ant[$keyb]->health . "," . $this->nest[$keya]->ant[$keyb]->lastpos . "," . $this->nest[$keya]->ant[$keyb]->enemyposx . "," . $this->nest[$keya]->ant[$keyb]->enemyposy;
+					$antline .= "," . $this->nest[$keya]->ant[$keyb]->posx . "," . $this->nest[$keya]->ant[$keyb]->posy . "," . $this->nest[$keya]->ant[$keyb]->brain->update() . "," . $this->nest[$keya]->ant[$keyb]->quality . "," . $this->nest[$keya]->ant[$keyb]->stamina . "," . $this->nest[$keya]->ant[$keyb]->health . "," . $this->nest[$keya]->ant[$keyb]->lastpos . "," . $this->nest[$keya]->ant[$keyb]->enemyposx . "," . $this->nest[$keya]->ant[$keyb]->enemyposy . "," . $this->nest[$keya]->ant[$keyb]->name;
 					$numofants++;
 				}
 			}
@@ -122,7 +122,7 @@ class WORLD{
 				$this->nest[$nesttype] = new NEST($nesttype, array_pop($reversed), array_pop($reversed), $this->worldname,  array_pop($reversed), array_pop($reversed), false);
 				$numofants = array_pop($reversed);
 				for( $j = 1; $j <= $numofants; $j++){
-					$this->nest[$nesttype]->loadant(array_pop($reversed), array_pop($reversed), array_pop($reversed), array_pop($reversed), array_pop($reversed), array_pop($reversed), array_pop($reversed), array_pop($reversed), array_pop($reversed));
+					$this->nest[$nesttype]->loadant(array_pop($reversed), array_pop($reversed), array_pop($reversed), array_pop($reversed), array_pop($reversed), array_pop($reversed), array_pop($reversed), array_pop($reversed), array_pop($reversed), array_pop($reversed));
 				}
 		}
 		$numoffood = array_pop($reversed);
@@ -317,8 +317,8 @@ class NEST{
 		$this->world->turnoutput .= $text . "<br>";
 	}
 	
-	function loadant($posx, $posy, $brain, $quality, $stamina, $health, $lastpos, $enemyposx, $enemyposy ){
-		$this->ant[] = new ANT($posx, $posy, $this->type, $this->world, $brain, $quality, $stamina, $health, $lastpos, $enemyposx, $enemyposy);
+	function loadant($posx, $posy, $brain, $quality, $stamina, $health, $lastpos, $enemyposx, $enemyposy, $name ){
+		$this->ant[] = new ANT($posx, $posy, $this->type, $this->world, $brain, $quality, $stamina, $health, $lastpos, $enemyposx, $enemyposy, $name);
 	}
 	
 	function newant($posx, $posy){
@@ -370,7 +370,7 @@ class ANT{
     const DAMMAX = 4;
 	const NAME = "Ant";
 	
-	function __construct($posix, $posiy, $type, &$world, $brain = 'stunned', $quality = 0, $stamina = 50, $health='10', $lastpos = 0, $enemyposx = 0, $enemyposy = 0,){
+	function __construct($posix, $posiy, $type, &$world, $brain = 'stunned', $quality = 0, $stamina = 50, $health='10', $lastpos = 0, $enemyposx = 0, $enemyposy = 0, $name){
 		$this->world = &$world;
 		$this->posx = $posix;
 		$this->posy = $posiy;
